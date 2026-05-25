@@ -1,34 +1,33 @@
 /**
  * Fishing Frenzy Panel
- * Full UI
- * - Frenzy
- * - Auto Frenzy
- * - Unlock All Blooks
- * - Auto Answer
- * - Set Weight
- * - Draggable
- * - Animated UI
- * - Scrollbar
+ * Full Feature UI
  */
 
 (() => {
 
-    // =========================
-    // STATES
-    // =========================
+    document.getElementById("fishing-frenzy-panel")?.remove();
+
     let autoFrenzy = false;
     let autoAnswer = false;
+    let clientFrenzy = false;
 
     let frenzyLoop = null;
     let answerLoop = null;
 
-    // =========================
-    // REMOVE OLD PANEL
-    // =========================
-    document.getElementById("fishing-frenzy-panel")?.remove();
+    const distractions = [
+        "Crab",
+        "Jellyfish",
+        "Frog",
+        "Pufferfish",
+        "Octopus",
+        "Narwhal",
+        "Megalodon",
+        "Blobfish",
+        "Baby Shark"
+    ];
 
     // =========================
-    // MAIN UI
+    // UI
     // =========================
     const ui = document.createElement("div");
 
@@ -38,8 +37,8 @@
         position: fixed;
         top: 120px;
         left: 120px;
-        width: 290px;
-        max-height: 430px;
+        width: 300px;
+        max-height: 500px;
         overflow-y: auto;
         background: rgba(15,15,15,.96);
         border: 2px solid rgba(255,255,255,.08);
@@ -83,8 +82,6 @@
             }
         }
 
-        /* Scrollbar */
-
         #fishing-frenzy-panel::-webkit-scrollbar {
             width: 8px;
         }
@@ -121,15 +118,15 @@
             transform: scale(.95);
         }
 
-        .frenzy-btn {
+        .red-btn {
             background: linear-gradient(135deg,#ff3c3c,#ff7b00);
         }
 
-        .unlock-btn {
+        .blue-btn {
             background: linear-gradient(135deg,#8e2dff,#4b7cff);
         }
 
-        .weight-btn {
+        .green-btn {
             background: linear-gradient(135deg,#00c27a,#00a8ff);
         }
 
@@ -189,6 +186,10 @@
             color: rgba(255,255,255,.5);
         }
 
+        select.input-box {
+            cursor: pointer;
+        }
+
     `;
 
     document.head.appendChild(style);
@@ -206,16 +207,16 @@
             text-align:center;
             letter-spacing:.5px;
         ">
-            🎣 Fishing Frenzy Panel
+            Fishing Frenzy Panel
         </div>
 
         <div style="padding:14px;">
 
-            <button class="ui-btn frenzy-btn" id="frenzyBtn">
+            <button class="ui-btn red-btn" id="frenzyBtn">
                 Frenzy
             </button>
 
-            <button class="ui-btn unlock-btn" id="unlockBtn">
+            <button class="ui-btn blue-btn" id="unlockBtn">
                 Unlock All Blooks
             </button>
 
@@ -226,8 +227,42 @@
                 placeholder="Set Weight..."
             >
 
-            <button class="ui-btn weight-btn" id="setWeightBtn">
+            <button class="ui-btn green-btn" id="setWeightBtn">
                 Set Weight
+            </button>
+
+            <input
+                type="number"
+                class="input-box"
+                id="lureInput"
+                placeholder="Set Lure (1-5)..."
+            >
+
+            <button class="ui-btn green-btn" id="setLureBtn">
+                Set Lure
+            </button>
+
+            <select
+                class="input-box"
+                id="distractionSelect"
+            >
+                <option value="Crab">Crab</option>
+                <option value="Jellyfish">Jellyfish</option>
+                <option value="Frog">Frog</option>
+                <option value="Pufferfish">Pufferfish</option>
+                <option value="Octopus">Octopus</option>
+                <option value="Narwhal">Narwhal</option>
+                <option value="Megalodon">Megalodon</option>
+                <option value="Blobfish">Blobfish</option>
+                <option value="Baby Shark">Baby Shark</option>
+            </select>
+
+            <button class="ui-btn red-btn" id="sendDistractionBtn">
+                Send Distraction
+            </button>
+
+            <button class="ui-btn blue-btn" id="removeDistractionBtn">
+                Remove Distraction
             </button>
 
             <div class="toggle-row">
@@ -240,6 +275,11 @@
                 <div class="toggle" id="answerToggle"></div>
             </div>
 
+            <div class="toggle-row">
+                <span>Client Frenzy</span>
+                <div class="toggle" id="clientFrenzyToggle"></div>
+            </div>
+
         </div>
 
     `;
@@ -247,7 +287,22 @@
     document.body.appendChild(ui);
 
     // =========================
-    // FRENZY
+    // BUTTON ANIMATION
+    // =========================
+    const animateButton = (btn) => {
+
+        btn.animate([
+            { transform: "scale(1)" },
+            { transform: "scale(.92)" },
+            { transform: "scale(1)" }
+        ], {
+            duration: 180
+        });
+
+    };
+
+    // =========================
+    // FUNCTIONS
     // =========================
     const frenzy = async () => {
 
@@ -270,11 +325,9 @@
                 s: true
             }
         });
+
     };
 
-    // =========================
-    // SET WEIGHT
-    // =========================
     const setWeight = () => {
 
         let e = Number(
@@ -297,86 +350,112 @@
             val: {
                 b: t.props.client.blook,
                 w: e,
-                f: [
-                    "Crab",
-                    "Jellyfish",
-                    "Frog",
-                    "Pufferfish",
-                    "Octopus",
-                    "Narwhal",
-                    "Megalodon",
-                    "Blobfish",
-                    "Baby Shark"
-                ][Math.floor(9 * Math.random())]
+                f: distractions[Math.floor(9 * Math.random())]
             }
         });
+
     };
 
-    // =========================
-    // UNLOCK BLOOKS
-    // =========================
-    const unlockBlooks = () => {
+    const setLure = () => {
 
-        const stateNode = Object.values(
-            document.querySelector('#app>div>div')
-        )[1].children[0]._owner.stateNode;
+        let lure = Number(
+            document.getElementById("lureInput").value
+        );
 
-        if (!(stateNode.state.unlocks || stateNode.state.blookData)) {
-            alert("Run this in lobby/dashboard!");
-            return;
-        }
+        if (!lure) return;
 
-        if (stateNode.state.blookData) {
+        Object.values(
+            (function react(r = document.querySelector("body>div")) {
 
-            let oe = Object.entries;
+                return Object.values(r)[1]?.children?.[0]?._owner.stateNode
+                    ? r
+                    : react(r.querySelector(":scope>div"));
 
-            Object.entries = function(a) {
+            })()
+        )[1].children[0]._owner.stateNode.setState({
 
-                if (a?.Chick) {
-                    allBlooks(a);
-                    Object.entries = oe;
-                }
+            lure: Math.max(
+                Math.min(lure - 1, 4),
+                0
+            )
 
-                return oe.apply(this, arguments);
+        });
+
+    };
+
+    const removeDistraction = () => {
+
+        Object.values(
+            (function react(r = document.querySelector("body>div")) {
+
+                return Object.values(r)[1]?.children?.[0]?._owner.stateNode
+                    ? r
+                    : react(r.querySelector(":scope>div"));
+
+            })()
+        )[1].children[0]._owner.stateNode.setState({
+            party: ""
+        });
+
+    };
+
+    const sendDistraction = () => {
+
+        let { stateNode } = Object.values(
+            (function react(r = document.querySelector("body>div")) {
+
+                return Object.values(r)[1]?.children?.[0]?._owner.stateNode
+                    ? r
+                    : react(r.querySelector(":scope>div"));
+
+            })()
+        )[1].children[0]._owner;
+
+        const selectedDistraction =
+            document.getElementById("distractionSelect").value;
+
+        stateNode.safe = true;
+
+        stateNode.props.liveGameController.setVal({
+            path: `c/${stateNode.props.client.name}`,
+            val: {
+                b: stateNode.props.client.blook,
+                w: stateNode.state.weight,
+                f: selectedDistraction,
+                s: true
             }
+        });
 
-            stateNode.render();
+        alert(`Sent ${selectedDistraction} distraction`);
 
-            function allBlooks(blooks) {
+    };
 
-                stateNode.setState({
+    const toggleClientFrenzy = () => {
 
-                    blookData: Object.keys(blooks).reduce((a, b) => {
+        const componentInstance = Object.values(
+            document.querySelector("#app > div > div")
+        )[1].children[1]._owner.stateNode;
 
-                        a[b] = stateNode.state.blookData[b] || 1;
-                        return a;
+        if (clientFrenzy) {
 
-                    }, {}),
+            clientFrenzy = false;
 
-                    allSets: Object.values(blooks).reduce((a, b) => {
-
-                        if (!a.includes(b.set)) a.push(b.set);
-
-                        return a;
-
-                    }, [])
-                });
-            }
+            componentInstance.setState({
+                isFrenzy: false
+            });
 
         } else {
 
-            stateNode.setState({
-                unlocks: {
-                    includes: () => true
-                }
+            clientFrenzy = true;
+
+            componentInstance.setState({
+                isFrenzy: true
             });
 
         }
+
     };
 
-    // =========================
-    // AUTO ANSWER
-    // =========================
     const startAutoAnswer = () => {
 
         answerLoop = setInterval(() => {
@@ -432,22 +511,12 @@
             } catch {}
 
         }, 50);
+
     };
 
     // =========================
     // BUTTON EVENTS
     // =========================
-    const animateButton = (btn) => {
-
-        btn.animate([
-            { transform: "scale(1)" },
-            { transform: "scale(.92)" },
-            { transform: "scale(1)" }
-        ], {
-            duration: 180
-        });
-    };
-
     document.getElementById("frenzyBtn").onclick = async () => {
 
         animateButton(
@@ -455,15 +524,7 @@
         );
 
         await frenzy();
-    };
 
-    document.getElementById("unlockBtn").onclick = () => {
-
-        animateButton(
-            document.getElementById("unlockBtn")
-        );
-
-        unlockBlooks();
     };
 
     document.getElementById("setWeightBtn").onclick = () => {
@@ -473,12 +534,45 @@
         );
 
         setWeight();
+
+    };
+
+    document.getElementById("setLureBtn").onclick = () => {
+
+        animateButton(
+            document.getElementById("setLureBtn")
+        );
+
+        setLure();
+
+    };
+
+    document.getElementById("sendDistractionBtn").onclick = () => {
+
+        animateButton(
+            document.getElementById("sendDistractionBtn")
+        );
+
+        sendDistraction();
+
+    };
+
+    document.getElementById("removeDistractionBtn").onclick = () => {
+
+        animateButton(
+            document.getElementById("removeDistractionBtn")
+        );
+
+        removeDistraction();
+
     };
 
     // =========================
-    // AUTO FRENZY TOGGLE
+    // TOGGLES
     // =========================
     const frenzyToggle = document.getElementById("frenzyToggle");
+    const answerToggle = document.getElementById("answerToggle");
+    const clientFrenzyToggle = document.getElementById("clientFrenzyToggle");
 
     frenzyToggle.onclick = () => {
 
@@ -497,12 +591,8 @@
             clearInterval(frenzyLoop);
 
         }
-    };
 
-    // =========================
-    // AUTO ANSWER TOGGLE
-    // =========================
-    const answerToggle = document.getElementById("answerToggle");
+    };
 
     answerToggle.onclick = () => {
 
@@ -519,6 +609,15 @@
             clearInterval(answerLoop);
 
         }
+
+    };
+
+    clientFrenzyToggle.onclick = () => {
+
+        clientFrenzyToggle.classList.toggle("active");
+
+        toggleClientFrenzy();
+
     };
 
     // =========================
@@ -536,6 +635,7 @@
 
         offsetX = e.clientX - ui.offsetLeft;
         offsetY = e.clientY - ui.offsetTop;
+
     });
 
     document.addEventListener("mousemove", (e) => {
@@ -544,6 +644,7 @@
 
         ui.style.left = `${e.clientX - offsetX}px`;
         ui.style.top = `${e.clientY - offsetY}px`;
+
     });
 
     document.addEventListener("mouseup", () => {
